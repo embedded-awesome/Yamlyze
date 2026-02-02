@@ -2,7 +2,7 @@ name: Clang development
 
 includes:
   global:
-    - include
+    - /usr/lib/llvm-18/include
 
 supports:
   components:
@@ -10,20 +10,58 @@ supports:
       flags:
         ld:
           global:
-            - '-Wl,-L"/usr/lib/llvm-15/lib"'
+            - '-Wl,-L"/usr/lib/llvm-18/lib"'
             - -rpath @executable_path 
-            - -lclang
+            - -lclangTooling
+            - -lclangFrontend
+            - -lclangParse
+            - -lclangSema
+            - -lclangAnalysis
+            - -lclangAST
+            - -lclangBasic
+            - -lclangDriver
+            - -lclangSerialization
+            - -lclangLex
+            - -lclangEdit
+            - -lLLVM-18
     xcode:
+      includes:
+        global:
+          - /Library/Developer/CommandLineTools/usr/include
       flags:
         ld:
           global:
             - '-Wl,-L"/Library/Developer/CommandLineTools/usr/lib/"'
             - -rpath @executable_path 
-            - -lclang
+            - -lclangTooling
+            - -lclangFrontend
+            - -lclangParse
+            - -lclangSema
+            - -lclangAnalysis
+            - -lclangAST
+            - -lclangBasic
+            - -lclangDriver
+            - -lclangSerialization
+            - -lclangLex
+            - -lclangEdit
+            - -lLLVM
     msvc:
+      includes:
+        global:
+          - 'C:/Program Files/LLVM/include'
       flags:
         ld:
           global:
             - '-LIBPATH:"C:/Program Files/LLVM/lib"'
-            - libclang.lib
+            - clangTooling.lib
+            - clangFrontend.lib
+            - clangParse.lib
+            - clangSema.lib
+            - clangAnalysis.lib
+            - clangAST.lib
+            - clangBasic.lib
+            - clangDriver.lib
+            - clangSerialization.lib
+            - clangLex.lib
+            - clangEdit.lib
 

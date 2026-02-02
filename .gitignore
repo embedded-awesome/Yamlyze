@@ -3,3 +3,5 @@ output
 .cproject
 .vscode
 *.code-workspace
+yakka-components.json
+yakka.log

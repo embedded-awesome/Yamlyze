@@ -5,8 +5,47 @@ sources:
 
 requires:
   components:
-    - clang-dev
     - pugixml
     - yaml-cpp
     - json
     - cxxopts
+
+supports:
+  components:
+    clang:
+      flags:
+        cpp:
+          global:
+            - -fno-rtti
+            - -Wno-deprecated-anon-enum-enum-conversion
+            - -I/usr/lib/llvm-18/include
+        ld:
+          global:
+            - '-Wl,-L/usr/lib/llvm-18/lib'
+            - -Wl,-rpath,/usr/lib/llvm-18/lib
+            - -lclang-cpp
+            - -lLLVM-18
+    xcode:
+      flags:
+        cpp:
+          global:
+            - -fno-rtti
+            - -Wno-deprecated-anon-enum-enum-conversion
+            - -I/Library/Developer/CommandLineTools/usr/include
+        ld:
+          global:
+            - '-Wl,-L/Library/Developer/CommandLineTools/usr/lib/'
+            - -Wl,-rpath,@executable_path
+            - -lclang-cpp
+            - -lLLVM
+    msvc:
+      flags:
+        cpp:
+          global:
+            - /GR-
+            - '-I"C:/Program Files/LLVM/include"'
+        ld:
+          global:
+            - '-LIBPATH:"C:/Program Files/LLVM/lib"'
+            - clang-cpp.lib
+
