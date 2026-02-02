@@ -281,7 +281,14 @@ int main(int argc, char **argv) {
     exit(0);
   }
 
-  module_filepath = std::filesystem::weakly_canonical(module_filename);
+  // Convert to absolute path if the file exists, otherwise use as-is
+  if (std::filesystem::exists(module_filename)) {
+    module_filepath = std::filesystem::weakly_canonical(module_filename);
+  } else {
+    // If file doesn't exist yet, just convert to absolute - the error will be caught when trying to read
+    module_filepath = std::filesystem::absolute(module_filename);
+    std::cerr << "Warning: File does not exist: " << module_filepath << "\n";
+  }
 
   // Import the compile options
   std::vector<std::string> arg_strings;
@@ -335,7 +342,7 @@ int main(int argc, char **argv) {
   Visitor.TraverseDecl(AST->getASTContext().getTranslationUnitDecl());
 
   // Use the filename to generate module name
-  const std::string module_name = module_filename.substr(module_filename.find_last_of('/') + 1);
+  const std::string module_name = std::filesystem::path(module_filename).filename().string();
 
   // Create a summary YAML node to hold all the other nodes
   YAML::Node summary;

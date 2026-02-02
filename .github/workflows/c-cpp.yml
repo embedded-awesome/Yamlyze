@@ -15,17 +15,21 @@ jobs:
         lfs: 'true'
     - name: Check out LFS objects
       run: git lfs checkout
-    - name: Fix libclang
-      run: cd /usr/lib/llvm-15/lib && sudo ln -s libclang.so.1 libclang.so
+    - name: Install LLVM 18 development libraries
+      run: sudo apt-get update && sudo apt-get install -y libclang-18-dev llvm-18-dev
+    - name: Create libclang-cpp symlink
+      run: cd /usr/lib/llvm-18/lib && sudo ln -s libclang-cpp.so.18.1 libclang-cpp.so
     - run: ./yakka-linux link! yamlyze clang
     - run: mv ${{github.workspace}}/output/yamlyze-clang/yamlyze-clang ${{github.workspace}}/output/yamlyze-clang/yamlyze-linux
-    - run: cp /usr/lib/llvm-15/lib/libclang.so ${{github.workspace}}/output/yamlyze-clang/libclang.so
+    - run: cp /usr/lib/llvm-18/lib/libclang-cpp.so.18.1 ${{github.workspace}}/output/yamlyze-clang/libclang-cpp.so.18.1
+    - run: cp /usr/lib/llvm-18/lib/libLLVM-18.so.1 ${{github.workspace}}/output/yamlyze-clang/libLLVM-18.so.1
     - uses: actions/upload-artifact@v4
       with:
         name: Linux executable
         path: |
           ${{github.workspace}}/output/yamlyze-clang/yamlyze-linux
-          ${{github.workspace}}/output/yamlyze-clang/libclang.so
+          ${{github.workspace}}/output/yamlyze-clang/libclang-cpp.so.18.1
+          ${{github.workspace}}/output/yamlyze-clang/libLLVM-18.so.1
         if-no-files-found: error
     - uses: actions/upload-artifact@v4
       if: failure()
@@ -49,13 +53,13 @@ jobs:
 #      run: echo "LIBCLANG_PATH=$((gcm clang).source -replace "clang.exe")" >> $env:GITHUB_ENV
     - run: ./yakka-windows link! yamlyze msvc
     - run: mv ${{github.workspace}}/output/yamlyze-msvc/yamlyze-msvc.exe ${{github.workspace}}/output/yamlyze-msvc/yamlyze-windows.exe
-    - run: Copy-Item "C:\Program Files\LLVM\bin\libclang.dll" -Destination ${{github.workspace}}/output/yamlyze-msvc
+    - run: Copy-Item "C:\Program Files\LLVM\bin\clang-cpp.dll" -Destination ${{github.workspace}}/output/yamlyze-msvc -ErrorAction SilentlyContinue
     - uses: actions/upload-artifact@v4
       with:
         name: Windows executable
         path: |
           ${{github.workspace}}/output/yamlyze-msvc/yamlyze-windows.exe
-          ${{github.workspace}}/output/yamlyze-msvc/libclang.dll
+          ${{github.workspace}}/output/yamlyze-msvc/clang-cpp.dll
         if-no-files-found: error
     - uses: actions/upload-artifact@v4
       if: failure()
@@ -72,14 +76,14 @@ jobs:
       run: git lfs checkout
     - run: ./yakka-macos link! yamlyze xcode
     - run: mv ${{github.workspace}}/output/yamlyze-xcode/yamlyze-xcode ${{github.workspace}}/output/yamlyze-xcode/yamlyze-macos
-    - run: cp /Library/Developer/CommandLineTools/usr/lib/libclang.dylib ${{github.workspace}}/output/yamlyze-xcode/libclang.dylib
+    - run: cp /Library/Developer/CommandLineTools/usr/lib/libclang-cpp.dylib ${{github.workspace}}/output/yamlyze-xcode/libclang-cpp.dylib || true
     - uses: actions/upload-artifact@v4
       with:
         name: MacOS executable
         path: |
           ${{github.workspace}}/output/yamlyze-xcode/yamlyze-macos
-          ${{github.workspace}}/output/yamlyze-xcode/libclang.dylib
-        if-no-files-found: error
+          ${{github.workspace}}/output/yamlyze-xcode/libclang-cpp.dylib
+        if-no-files-found: warn
     - uses: actions/upload-artifact@v4
       if: failure()
       with:
