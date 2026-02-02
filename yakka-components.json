@@ -1,0 +1,39 @@
+{
+  "blueprints": {
+    "link": [
+      "msvc",
+      "clang",
+      "xcode"
+    ]
+  },
+  "components": {
+    "clang": [
+      "/home/runner/work/Yamlyze/Yamlyze/./tools/clang.yakka"
+    ],
+    "clang-dev": [
+      "/home/runner/work/Yamlyze/Yamlyze/./components/clang-dev/clang-dev.yakka"
+    ],
+    "cxxopts": [
+      "/home/runner/work/Yamlyze/Yamlyze/./components/cxxopts/cxxopts.yakka"
+    ],
+    "json": [
+      "/home/runner/work/Yamlyze/Yamlyze/./components/json/json.yakka"
+    ],
+    "msvc": [
+      "/home/runner/work/Yamlyze/Yamlyze/./tools/msvc.yakka"
+    ],
+    "pugixml": [
+      "/home/runner/work/Yamlyze/Yamlyze/./components/pugixml/pugixml.yakka"
+    ],
+    "xcode": [
+      "/home/runner/work/Yamlyze/Yamlyze/./tools/xcode.yakka"
+    ],
+    "yaml-cpp": [
+      "/home/runner/work/Yamlyze/Yamlyze/./components/yaml-cpp/yaml-cpp.yakka"
+    ],
+    "yamlyze": [
+      "/home/runner/work/Yamlyze/Yamlyze/./applications/yamlyze/yamlyze.yakka"
+    ]
+  },
+  "features": null
+}
