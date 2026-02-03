@@ -1,12 +1,11 @@
 name: Clang development
 
-includes:
-  global:
-    - /usr/lib/llvm-18/include
-
 supports:
   components:
-    clang:
+    clang: # Assuming Linux
+      includes:
+        global:
+          - /usr/lib/llvm-18/include
       flags:
         ld:
           global:
@@ -28,23 +27,22 @@ supports:
       includes:
         global:
           - /Library/Developer/CommandLineTools/usr/include
+          - /opt/homebrew/Cellar/llvm/21.1.8/include
       flags:
         ld:
           global:
-            - '-Wl,-L"/Library/Developer/CommandLineTools/usr/lib/"'
-            - -rpath @executable_path 
-            - -lclangTooling
-            - -lclangFrontend
-            - -lclangParse
-            - -lclangSema
-            - -lclangAnalysis
-            - -lclangAST
-            - -lclangBasic
-            - -lclangDriver
-            - -lclangSerialization
-            - -lclangLex
-            - -lclangEdit
-            - -lLLVM
+            - '-Wl,-L"/opt/homebrew/Cellar/llvm/21.1.8/lib"'
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangTooling.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangFrontend.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangParse.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangSema.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangAnalysis.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangAST.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangBasic.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangDriver.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangSerialization.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangLex.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangEdit.a
     msvc:
       includes:
         global:
