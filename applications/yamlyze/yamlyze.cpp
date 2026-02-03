@@ -7,6 +7,9 @@
 #include "clang/AST/Comment.h"
 #include "clang/AST/RawCommentList.h"
 #include "clang/Basic/FileEntry.h"
+#include "clang/Lex/PPCallbacks.h"
+#include "clang/Lex/Preprocessor.h"
+#include "clang/Lex/MacroInfo.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "nlohmann/json.hpp"
 #include "pugixml.hpp"
@@ -18,6 +21,7 @@
 #include <cstring>
 #include <filesystem>
 #include <regex>
+#include <set>
 
 // #define DEBUG
 
@@ -30,7 +34,10 @@ static YAML::Node functions              = {};
 static YAML::Node variables              = {};
 static YAML::Node types                  = {};
 static YAML::Node headers                = {};
-static std::string current_function_name = "";
+static YAML::Node macros_declared        = {};
+static YAML::Node macros_referenced      = {};
+static std::set<std::string> declared_macros_set;
+std::string current_function_name = "";
 std::string module_filename;
 std::string output_filename;
 std::filesystem::path module_filepath;
@@ -39,6 +46,97 @@ bool analyze_function_calls = false;
 bool analyze_docs           = false;
 bool analyze_includes       = false;
 bool process_as_header_file = false;
+
+// Preprocessor Callbacks for Macro tracking
+class MacroCallback : public PPCallbacks {
+private:
+  SourceManager *SM;
+
+public:
+  explicit MacroCallback(SourceManager *SM) : SM(SM) {}
+
+  void MacroDefined(const Token &MacroNameTok, const MacroDirective *MD) override {
+    SourceLocation Loc = MacroNameTok.getLocation();
+    
+    if (!Loc.isValid() || SM->isInSystemHeader(Loc))
+      return;
+
+    if (!analyze_all_files) {
+      FileID FID = SM->getFileID(Loc);
+      OptionalFileEntryRef FE = SM->getFileEntryRefForID(FID);
+      if (!FE)
+        return;
+      
+      std::filesystem::path current_file = std::filesystem::weakly_canonical(std::string(FE->getName()));
+      if (module_filepath.compare(current_file) != 0)
+        return;
+    }
+
+    std::string macro_name = MacroNameTok.getIdentifierInfo()->getName().str();
+    declared_macros_set.insert(macro_name);
+    
+    // Get macro definition details
+    const MacroInfo *MI = MD->getMacroInfo();
+    if (MI) {
+      YAML::Node macro_node;
+      macro_node["name"] = macro_name;
+      
+      // Check if function-like macro
+      if (MI->isFunctionLike()) {
+        macro_node["type"] = "function-like";
+        macro_node["params"] = YAML::Node(YAML::NodeType::Sequence);
+        
+        for (const auto &Param : MI->params()) {
+          if (Param) {
+            macro_node["params"].push_back(Param->getName().str());
+          }
+        }
+      } else {
+        macro_node["type"] = "object-like";
+      }
+      
+      macros_declared.push_back(macro_node);
+    }
+  }
+
+  void MacroExpands(const Token &MacroNameTok, const MacroDefinition &MD,
+                    SourceRange Range, const MacroArgs *Args) override {
+    SourceLocation Loc = MacroNameTok.getLocation();
+    
+    if (!Loc.isValid() || SM->isInSystemHeader(Loc))
+      return;
+
+    if (!analyze_all_files) {
+      FileID FID = SM->getFileID(Loc);
+      OptionalFileEntryRef FE = SM->getFileEntryRefForID(FID);
+      if (!FE)
+        return;
+      
+      std::filesystem::path current_file = std::filesystem::weakly_canonical(std::string(FE->getName()));
+      if (module_filepath.compare(current_file) != 0)
+        return;
+    }
+
+    std::string macro_name = MacroNameTok.getIdentifierInfo()->getName().str();
+    
+    // Only track references to macros we didn't declare ourselves
+    if (declared_macros_set.find(macro_name) == declared_macros_set.end()) {
+      // Avoid duplicates in the referenced list
+      bool already_referenced = false;
+      for (const auto &node : macros_referenced) {
+        if (node.as<std::string>() == macro_name) {
+          already_referenced = true;
+          break;
+        }
+      }
+      
+      if (!already_referenced) {
+        macros_referenced.push_back(macro_name);
+      }
+    }
+  }
+};
+
 
 // AST Visitor
 class YamlyzeVisitor : public RecursiveASTVisitor<YamlyzeVisitor> {
@@ -253,6 +351,10 @@ class YamlyzeFrontendAction : public ASTFrontendAction {
 public:
   std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
                                                    StringRef file) override {
+    // Add preprocessor callbacks for macro tracking
+    CI.getPreprocessor().addPPCallbacks(
+        std::make_unique<MacroCallback>(&CI.getSourceManager()));
+    
     return std::make_unique<YamlyzeASTConsumer>(&CI.getASTContext());
   }
 };
@@ -261,6 +363,7 @@ int main(int argc, char **argv) {
   std::string option_file;
 
   cxxopts::Options options("yamlyze", "Creates a YAML representation of C/C++ source files");
+
   // clang-format off
   options.add_options()
     ("f,file", "Source/header file", cxxopts::value<std::string>(module_filename))
@@ -326,20 +429,17 @@ int main(int argc, char **argv) {
   
   std::string SourceCode = FileOrErr.get()->getBuffer().str();
 
-  // Run the tool
-  std::unique_ptr<ASTUnit> AST = buildASTFromCodeWithArgs(
+  // Run the tool using the frontend action to enable preprocessor callbacks
+  bool success = runToolOnCodeWithArgs(
+      std::make_unique<YamlyzeFrontendAction>(),
       SourceCode,
       arg_strings,
       module_filepath.string());
 
-  if (!AST) {
+  if (!success) {
     std::cerr << "Error: Failed to parse the file\n";
     return 1;
   }
-
-  // Visit the AST
-  YamlyzeVisitor Visitor(&AST->getASTContext());
-  Visitor.TraverseDecl(AST->getASTContext().getTranslationUnitDecl());
 
   // Use the filename to generate module name
   const std::string module_name = std::filesystem::path(module_filename).filename().string();
@@ -351,6 +451,11 @@ int main(int argc, char **argv) {
   summary["variables"] = variables;
   summary["types"]     = types;
   summary["headers"]   = headers;
+  
+  YAML::Node macros;
+  macros["declared"]   = macros_declared;
+  macros["referenced"] = macros_referenced;
+  summary["macros"]    = macros;
   
   if (output_filename.empty()) {
     std::cout << summary << std::endl;
