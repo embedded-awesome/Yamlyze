@@ -5,8 +5,81 @@ sources:
 
 requires:
   components:
-    - clang-dev
     - pugixml
     - yaml-cpp
     - json
     - cxxopts
+
+supports:
+  components:
+    clang:
+      flags:
+        cpp:
+          global:
+            - -fno-rtti
+            - -Wno-deprecated-anon-enum-enum-conversion
+            - -I/usr/lib/llvm-18/include
+        ld:
+          global:
+            - '-Wl,-L/usr/lib/llvm-18/lib'
+            - -Wl,-rpath,/usr/lib/llvm-18/lib
+            - -lclang-cpp
+            - -lLLVM-18
+    xcode:
+      flags:
+        cpp:
+          global:
+            - -fno-rtti
+            - -Wno-deprecated-anon-enum-enum-conversion
+            - -I/opt/homebrew/Cellar/llvm/21.1.8/include
+        ld:
+          global:
+            - -Wl,-L/opt/homebrew/Cellar/llvm/21.1.8/lib
+            - -Wl,-L/opt/homebrew/Cellar/zstd/1.5.7/lib
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangToolingCore.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangFrontend.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangAST.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangBasic.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangLex.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangSerialization.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangSema.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangAnalysis.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangTooling.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangSupport.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangDriver.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangEdit.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangParse.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangAPINotes.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangASTMatchers.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libLLVMSupport.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libLLVMFrontendOpenMP.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libLLVMFrontendHLSL.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libLLVMBinaryFormat.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libLLVMTargetParser.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libLLVMFrontendDirective.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libLLVMOption.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libLLVMMC.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libLLVMCore.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libLLVMMCParser.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libLLVMWindowsDriver.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libLLVMBitstreamReader.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libLLVMObject.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libLLVMProfileData.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libLLVMDemangle.a
+            # - /opt/homebrew/Cellar/zstd/1.5.7/lib/libzstd.a
+            - -lzstd
+            - -Wl,-dead_strip
+            - -lz
+            - -lm
+            - -lcurses
+    msvc:
+      flags:
+        cpp:
+          global:
+            - /GR-
+            - '-I"C:/Program Files/LLVM/include"'
+        ld:
+          global:
+            - '-LIBPATH:"C:/Program Files/LLVM/lib"'
+            - clang-cpp.lib
+

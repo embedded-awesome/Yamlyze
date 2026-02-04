@@ -11,19 +11,23 @@ flags:
 
   cpp:
     global:
-      - -O3
+      - -Oz
       - -std=c++20
       - -MD
       - -ffunction-sections
       - -fdata-sections
+      - -fvisibility=hidden
+      - -fvisibility-inlines-hidden
       - -Werror -Wpedantic -Wall
       - -arch arm64
 
   ld:
     global:
-      - -O3
+      - -Oz
       - -lpthread
       - -dead_strip
+      - -Wl,-dead_strip_dylibs
+      - -Wl,-no_exported_symbols
       - -arch arm64
 
 tools:

@@ -1,29 +1,65 @@
 name: Clang development
 
-includes:
-  global:
-    - include
-
 supports:
   components:
-    clang:
+    clang: # Assuming Linux
+      includes:
+        global:
+          - /usr/lib/llvm-18/include
       flags:
         ld:
           global:
-            - '-Wl,-L"/usr/lib/llvm-15/lib"'
+            - '-Wl,-L"/usr/lib/llvm-18/lib"'
             - -rpath @executable_path 
-            - -lclang
+            - -lclangTooling
+            - -lclangFrontend
+            - -lclangParse
+            - -lclangSema
+            - -lclangAnalysis
+            - -lclangAST
+            - -lclangBasic
+            - -lclangDriver
+            - -lclangSerialization
+            - -lclangLex
+            - -lclangEdit
+            - -lLLVM-18
     xcode:
+      includes:
+        global:
+          - /Library/Developer/CommandLineTools/usr/include
+          - /opt/homebrew/Cellar/llvm/21.1.8/include
       flags:
         ld:
           global:
-            - '-Wl,-L"/Library/Developer/CommandLineTools/usr/lib/"'
-            - -rpath @executable_path 
-            - -lclang
+            - '-Wl,-L"/opt/homebrew/Cellar/llvm/21.1.8/lib"'
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangTooling.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangFrontend.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangParse.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangSema.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangAnalysis.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangAST.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangBasic.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangDriver.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangSerialization.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangLex.a
+            - /opt/homebrew/Cellar/llvm/21.1.8/lib/libclangEdit.a
     msvc:
+      includes:
+        global:
+          - 'C:/Program Files/LLVM/include'
       flags:
         ld:
           global:
             - '-LIBPATH:"C:/Program Files/LLVM/lib"'
-            - libclang.lib
+            - clangTooling.lib
+            - clangFrontend.lib
+            - clangParse.lib
+            - clangSema.lib
+            - clangAnalysis.lib
+            - clangAST.lib
+            - clangBasic.lib
+            - clangDriver.lib
+            - clangSerialization.lib
+            - clangLex.lib
+            - clangEdit.lib
 
