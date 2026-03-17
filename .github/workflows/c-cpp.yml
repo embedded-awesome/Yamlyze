@@ -2,90 +2,132 @@ name: yamlyze Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+permissions:
+  contents: write
 
 jobs:
   build_linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        lfs: 'true'
-    - name: Check out LFS objects
-      run: git lfs checkout
-    - name: Install LLVM 18 development libraries
-      run: sudo apt-get update && sudo apt-get install -y libclang-18-dev llvm-18-dev
-    - name: Create libclang-cpp symlink
-      run: cd /usr/lib/llvm-18/lib && sudo ln -s libclang-cpp.so.18.1 libclang-cpp.so
-    - run: ./yakka-linux link! yamlyze clang
-    - run: mv ${{github.workspace}}/output/yamlyze-clang/yamlyze-clang ${{github.workspace}}/output/yamlyze-clang/yamlyze-linux
-    - run: cp /usr/lib/llvm-18/lib/libclang-cpp.so.18.1 ${{github.workspace}}/output/yamlyze-clang/libclang-cpp.so.18.1
-    - run: cp /usr/lib/llvm-18/lib/libLLVM-18.so.1 ${{github.workspace}}/output/yamlyze-clang/libLLVM-18.so.1
-    - uses: actions/upload-artifact@v4
-      with:
-        name: Linux executable
-        path: |
-          ${{github.workspace}}/output/yamlyze-clang/yamlyze-linux
-          ${{github.workspace}}/output/yamlyze-clang/libclang-cpp.so.18.1
-          ${{github.workspace}}/output/yamlyze-clang/libLLVM-18.so.1
-        if-no-files-found: error
-    - uses: actions/upload-artifact@v4
-      if: failure()
-      with:
-        name: Linux build log
-        path: ${{github.workspace}}/yakka.log
+      - uses: actions/checkout@v4
+        with:
+          lfs: "true"
+      - name: Check out LFS objects
+        run: git lfs checkout
+      - name: Install LLVM 18 development libraries
+        run: sudo apt-get update && sudo apt-get install -y libclang-18-dev llvm-18-dev
+      - name: Create libclang-cpp symlink
+        run: cd /usr/lib/llvm-18/lib && sudo ln -s libclang-cpp.so.18.1 libclang-cpp.so
+      - run: ./yakka-linux link! yamlyze clang
+      - run: mv ${{github.workspace}}/output/yamlyze-clang/yamlyze-clang ${{github.workspace}}/output/yamlyze-clang/yamlyze-linux
+      - run: cp /usr/lib/llvm-18/lib/libclang-cpp.so.18.1 ${{github.workspace}}/output/yamlyze-clang/libclang-cpp.so.18.1
+      - run: cp /usr/lib/llvm-18/lib/libLLVM-18.so.1 ${{github.workspace}}/output/yamlyze-clang/libLLVM-18.so.1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Linux executable
+          path: |
+            ${{github.workspace}}/output/yamlyze-clang/yamlyze-linux
+            ${{github.workspace}}/output/yamlyze-clang/libclang-cpp.so.18.1
+            ${{github.workspace}}/output/yamlyze-clang/libLLVM-18.so.1
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: Linux build log
+          path: ${{github.workspace}}/yakka.log
   build_windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        lfs: 'true'
-    - name: Check out LFS objects
-      run: git lfs checkout
-    - uses: ilammy/msvc-dev-cmd@v1
-      with:
-        arch: amd64
-    - run: 'dir env:'
-    - run: 'dir /'
-#    - name: Set LIBCLANG_PATH
-#      run: echo "LIBCLANG_PATH=$((gcm clang).source -replace "clang.exe")" >> $env:GITHUB_ENV
-    - run: ./yakka-windows link! yamlyze msvc
-    - run: mv ${{github.workspace}}/output/yamlyze-msvc/yamlyze-msvc.exe ${{github.workspace}}/output/yamlyze-msvc/yamlyze-windows.exe
-    - run: Copy-Item "C:\Program Files\LLVM\bin\clang-cpp.dll" -Destination ${{github.workspace}}/output/yamlyze-msvc -ErrorAction SilentlyContinue
-    - uses: actions/upload-artifact@v4
-      with:
-        name: Windows executable
-        path: |
-          ${{github.workspace}}/output/yamlyze-msvc/yamlyze-windows.exe
-          ${{github.workspace}}/output/yamlyze-msvc/clang-cpp.dll
-        if-no-files-found: error
-    - uses: actions/upload-artifact@v4
-      if: failure()
-      with:
-        name: Windows build log
-        path: ${{github.workspace}}/yakka.log
+      - uses: actions/checkout@v4
+        with:
+          lfs: "true"
+      - name: Check out LFS objects
+        run: git lfs checkout
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: amd64
+      - run: "dir env:"
+      - run: "dir /"
+      #    - name: Set LIBCLANG_PATH
+      #      run: echo "LIBCLANG_PATH=$((gcm clang).source -replace "clang.exe")" >> $env:GITHUB_ENV
+      - run: ./yakka-windows link! yamlyze msvc
+      - run: mv ${{github.workspace}}/output/yamlyze-msvc/yamlyze-msvc.exe ${{github.workspace}}/output/yamlyze-msvc/yamlyze-windows.exe
+      - run: Copy-Item "C:\Program Files\LLVM\bin\clang-cpp.dll" -Destination ${{github.workspace}}/output/yamlyze-msvc -ErrorAction SilentlyContinue
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Windows executable
+          path: |
+            ${{github.workspace}}/output/yamlyze-msvc/yamlyze-windows.exe
+            ${{github.workspace}}/output/yamlyze-msvc/clang-cpp.dll
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: Windows build log
+          path: ${{github.workspace}}/yakka.log
   build_macos:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        lfs: 'true'
-    - name: Check out LFS objects
-      run: git lfs checkout
-    - run: ./yakka-macos link! yamlyze xcode
-    - run: mv ${{github.workspace}}/output/yamlyze-xcode/yamlyze-xcode ${{github.workspace}}/output/yamlyze-xcode/yamlyze-macos
-    - run: cp /Library/Developer/CommandLineTools/usr/lib/libclang-cpp.dylib ${{github.workspace}}/output/yamlyze-xcode/libclang-cpp.dylib || true
-    - uses: actions/upload-artifact@v4
-      with:
-        name: MacOS executable
-        path: |
-          ${{github.workspace}}/output/yamlyze-xcode/yamlyze-macos
-          ${{github.workspace}}/output/yamlyze-xcode/libclang-cpp.dylib
-        if-no-files-found: warn
-    - uses: actions/upload-artifact@v4
-      if: failure()
-      with:
-        name: MacOS build log
-        path: ${{github.workspace}}/yakka.log
+      - uses: actions/checkout@v4
+        with:
+          lfs: "true"
+      - name: Check out LFS objects
+        run: git lfs checkout
+      - run: ./yakka-macos link! yamlyze xcode
+      - run: mv ${{github.workspace}}/output/yamlyze-xcode/yamlyze-xcode ${{github.workspace}}/output/yamlyze-xcode/yamlyze-macos
+      - run: cp /Library/Developer/CommandLineTools/usr/lib/libclang-cpp.dylib ${{github.workspace}}/output/yamlyze-xcode/libclang-cpp.dylib || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MacOS executable
+          path: |
+            ${{github.workspace}}/output/yamlyze-xcode/yamlyze-macos
+            ${{github.workspace}}/output/yamlyze-xcode/libclang-cpp.dylib
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: MacOS build log
+          path: ${{github.workspace}}/yakka.log
+
+  release_candidate:
+    runs-on: ubuntu-latest
+    needs: [build_linux, build_windows, build_macos]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Linux executable
+          path: artifacts/linux
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Windows executable
+          path: artifacts/windows
+
+      - name: Download MacOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: MacOS executable
+          path: artifacts/macos
+
+      - name: Create release candidate tag
+        id: rc_tag
+        run: echo "tag=rc-${{ github.run_number }}.${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
+
+      - name: Create release candidate
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.rc_tag.outputs.tag }}
+          name: Release Candidate ${{ steps.rc_tag.outputs.tag }}
+          prerelease: true
+          generate_release_notes: true
+          files: |
+            artifacts/linux/*
+            artifacts/windows/*
+            artifacts/macos/*
