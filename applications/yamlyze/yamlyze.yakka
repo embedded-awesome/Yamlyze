@@ -78,8 +78,51 @@ supports:
           global:
             - /GR-
             - '-I"C:/Program Files/LLVM/include"'
+            # - '-I"D:/apps/clang+llvm-18.1.8/include"'
         ld:
           global:
             - '-LIBPATH:"C:/Program Files/LLVM/lib"'
-            - clang-cpp.lib
+            # - '-LIBPATH:"D:/apps/clang+llvm-18.1.8/lib"'
+            - clangToolingCore.lib
+            - clangFrontend.lib
+            - clangAST.lib
+            - clangBasic.lib
+            - clangLex.lib
+            - clangSerialization.lib
+            - clangSema.lib
+            - clangAnalysis.lib
+            - clangTooling.lib
+            - clangSupport.lib
+            - clangDriver.lib
+            - clangEdit.lib
+            - clangParse.lib
+            - clangAPINotes.lib
+            - clangASTMatchers.lib
+            - LLVMSupport.lib
+            - LLVMFrontendOpenMP.lib
+            - LLVMFrontendHLSL.lib
+            - LLVMBinaryFormat.lib
+            - LLVMTargetParser.lib
+            # - LLVMFrontendDirective.lib
+            - LLVMFrontendOffloading.lib
+            - LLVMOption.lib
+            - LLVMMC.lib
+            - LLVMCore.lib
+            - LLVMAnalysis.lib
+            - LLVMTransformUtils.lib
+            - LLVMScalarOpts.lib
+            - LLVMIRReader.lib
+            - LLVMAsmParser.lib
+            - LLVMBitReader.lib
+            - LLVMMCParser.lib
+            - LLVMWindowsDriver.lib
+            - LLVMBitstreamReader.lib
+            - LLVMObject.lib
+            - LLVMRemarks.lib
+            - LLVMTextAPI.lib
+            - LLVMDebugInfoDWARF.lib
+            - LLVMProfileData.lib
+            - LLVMDemangle.lib
+            - version.lib
+            - Ws2_32.lib
 
