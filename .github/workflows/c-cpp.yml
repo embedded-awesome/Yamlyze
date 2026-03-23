@@ -13,7 +13,7 @@ jobs:
   build_linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           lfs: "true"
       - name: Check out LFS objects
@@ -24,13 +24,13 @@ jobs:
         run: cd /usr/lib/llvm-18/lib && sudo ln -s libclang-cpp.so.18.1 libclang-cpp.so
       - run: ./yakka-linux link! yamlyze clang
       - run: mv ${{github.workspace}}/output/yamlyze-clang/yamlyze-clang ${{github.workspace}}/output/yamlyze-clang/yamlyze-linux
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: Linux executable
           path: |
             ${{github.workspace}}/output/yamlyze-clang/yamlyze-linux
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: Linux build log
@@ -38,7 +38,7 @@ jobs:
   build_windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           lfs: "true"
       - name: Check out LFS objects
@@ -50,15 +50,37 @@ jobs:
       - run: "dir /"
       #    - name: Set LIBCLANG_PATH
       #      run: echo "LIBCLANG_PATH=$((gcm clang).source -replace "clang.exe")" >> $env:GITHUB_ENV
+      - name: Discover LLVM paths
+        shell: pwsh
+        run: |
+          $clang = (Get-Command clang -ErrorAction Stop).Source
+          Write-Host "clang at: $clang"
+
+          # clang.exe is usually <LLVM_ROOT>\bin\clang.exe
+          $llvmRoot = Split-Path (Split-Path $clang -Parent) -Parent
+          $llvmLib  = Join-Path $llvmRoot "lib"
+          $llvmInc  = Join-Path $llvmRoot "include"
+
+          if (-not (Test-Path $llvmLib)) {
+            throw "LLVM lib dir not found: $llvmLib"
+          }
+
+          "LLVM_ROOT=$llvmRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "LLVM_LIB_DIR=$llvmLib" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "LLVM_INCLUDE_DIR=$llvmInc" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+          Write-Host "LLVM_ROOT=$llvmRoot"
+          Write-Host "LLVM_LIB_DIR=$llvmLib"
+          Write-Host "LLVM_INCLUDE_DIR=$llvmInc"
       - run: ./yakka-windows link! yamlyze msvc
       - run: mv ${{github.workspace}}/output/yamlyze-msvc/yamlyze-msvc.exe ${{github.workspace}}/output/yamlyze-msvc/yamlyze-windows.exe
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: Windows executable
           path: |
             ${{github.workspace}}/output/yamlyze-msvc/yamlyze-windows.exe
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: Windows build log
@@ -66,20 +88,20 @@ jobs:
   build_macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           lfs: "true"
       - name: Check out LFS objects
         run: git lfs checkout
       - run: ./yakka-macos link! yamlyze xcode
       - run: mv ${{github.workspace}}/output/yamlyze-xcode/yamlyze-xcode ${{github.workspace}}/output/yamlyze-xcode/yamlyze-macos
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: MacOS executable
           path: |
             ${{github.workspace}}/output/yamlyze-xcode/yamlyze-macos
           if-no-files-found: warn
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: MacOS build log
@@ -91,19 +113,19 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Download Linux artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: Linux executable
           path: artifacts/linux
 
       - name: Download Windows artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: Windows executable
           path: artifacts/windows
 
       - name: Download MacOS artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: MacOS executable
           path: artifacts/macos
